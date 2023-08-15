@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <h1>MongoDB的增刪改查Demo</h1>
+    <div>
+      <div>用戶名: <input id="username" /></div>
+      <div>密碼: <input type="password" id="password"/></div>
+      <div>年齡: <input type="number" id="age"/></div>
+      <div><button id="register">注冊</button></div>
+    </div>
+    <hr>
+    <div>
+      <button id="update">更新</button>
+      <button id="delete">刪除</button>
+    </div>
+    <hr>
+    <table border="1">
+      <thead>
+        <tr>
+          <td>id</td>
+          <td>用戶名</td>
+          <td>年齡</td>
+        </tr>
+      </thead>
+      <tbody>
+
+      </tbody>
+    </table>
+      <script>
+        var register=document.querySelector("#register")
+        var username=document.querySelector("#username")
+        var password=document.querySelector("#password")
+        var btnUpdate= document.querySelector("#update")
+        var btnDelete= document.querySelector("#delete")
+        var age=document.querySelector("#age")
+        register.onclick= () => { 
+          console.log(username.value, password.value, age.value);
+        
+          fetch("/api/user/add", {
+            method:"POST",
+            body: JSON.stringify({
+              username: username.value,
+              password: password.value,
+              age: age.value
+            }),
+            headers:{
+              "Content-Type":"application/json"
+            }
+          }).then(res=>res.json()).then(res=>{
+            console.log(res);
+          })
+        }
+        btnUpdate.onclick= () => { 
+        fetch("/api/user/update/64a5404840506efb466fa408", {
+            method:"POST",
+            body: JSON.stringify({
+              username: "newName",
+              password: "newPass",
+              age: 1
+            }),
+            headers:{
+              "Content-Type":"application/json"
+            }
+          }).then(res=>res.json()).then(res=>{
+            console.log(res);
+          })         
+         }
+         btnDelete.onclick= () => { 
+           fetch("/api/user/delete/64a5404840506efb466fa408", {
+            method:"POST",
+            headers:{
+              "Content-Type":"application/json"
+            }
+          }).then(res=>res.json()).then(res=>{
+            console.log(res);
+          })        
+         }
+
+         // 获取列表
+         fetch("/api/user/list?page=2&limit=2").then(res=>res.json()).then(res=>{
+            console.log(res);
+            var tbody= document.querySelector("tbody")
+            tbody.innerHTML=res.map(item=>`
+            <tr>
+              <td>${item._id}</td>  
+              <td>${item.username}</td>  
+              <td>${item.age}</td>  
+            </tr>
+            `).join("")
+          })
+      </script>
+
+  </body>
+</html>

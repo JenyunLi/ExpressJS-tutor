@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>
+    <%= title %>
+  </title>
+  <link rel='stylesheet' href='/stylesheets/style.css' />
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+  <script>
+    // 拦截器
+    axios.interceptors.request.use(function (config) {
+      // console.log('請求发出前，执行的方 法');
+      // Do something before request is sent
+      const token= localStorage.getItem("token")
+      config.headers.Authorization = `Bearer ${token}`
+      return config;
+    }, function (error) {
+      // Do something with request error
+      return Promise.reject(error);
+    });
+
+    // Add a response interceptor
+    axios.interceptors.response.use(function (response) {
+      // console.log('請求成功後，第一個調用的方法');
+      // console.log(response.headers);
+      const { authorization } = response.headers
+      authorization && localStorage.setItem("token", authorization)
+      // Any status code that lie within the range of 2xx cause this function to trigger
+      // Do something with response data
+      return response;
+    }, function (error) {
+      // console.log(error.response.status);
+      if (error.response.status=== 401) {
+        localStorage.removeItem("token")
+        location.href= "/login"
+      }
+      return Promise.reject(error);
+    });
+  </script>
+  <style>
+    td img{
+      width: 90px;
+      height: 80px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>后台系統-用戶管理业务<button id="exit">退出登录</button></h1>
+
+  <div>
+    <div>用戶名: <input id="username" /></div>
+    <div>密碼: <input type="password" id="password" /></div>
+    <div>年齡: <input type="number" id="age" /></div>
+    <div>头像: <input type="file" id="avatar" /></div>
+    <div><button id="register">添加用戶</button></div>
+  </div>
+  <hr>
+  <div>
+    <button id="update">更新</button>
+    <button id="delete">刪除</button>
+  </div>
+  <hr>
+  <table border="1">
+    <thead>
+      <tr>
+        <td>id</td>
+        <td>用戶名</td>
+        <td>年齡</td>
+        <td>头像</td>
+      </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+  </table>
+  <script>
+    var register = document.querySelector("#register")
+    var exit = document.querySelector("#exit")
+    var username = document.querySelector("#username")
+    var password = document.querySelector("#password")
+    var btnUpdate = document.querySelector("#update")
+    var btnDelete = document.querySelector("#delete")
+    var age = document.querySelector("#age")
+    var avatar = document.querySelector("#avatar")
+
+    register.onclick = () => {
+      console.log(username.value, password.value, age.value, avatar.files);
+
+      // axios.post("/api/user", {
+      //   username: username.value,
+      //   password: password.value,
+      //   age: age.value
+      // }).then(res => {
+      //   console.log(res.data);
+      // })
+      const formdata= new FormData()
+      formdata.append("username", username.value)
+      formdata.append("password", password.value)
+      formdata.append("age", age.value)
+      formdata.append("avatar", avatar.files[0])
+      axios.post("/api/user", formdata, {
+        headers:{
+          "Content-Type": "multipart/form-data"
+        }
+      }).then(res => {
+        console.log(res.data);
+      })
+    }
+
+    btnUpdate.onclick = () => {
+      axios.put("/api/user/update/64a540d640506efb466fa410", {
+        username: "newName",
+        password: "newPass",
+        age: 12
+      }).then(res => {
+        console.log(res.data);
+      })
+    }
+
+    btnDelete.onclick = () => {
+      axios.delete("/api/user/64a540d640506efb466fa410")
+        .then(res => {
+          console.log(res.data);
+        })
+    }
+
+    // 获取列表
+    axios.get("/api/user?page=1&limit=12").then(res => {
+      // console.log(res.data);
+      res = res.data
+      var tbody = document.querySelector("tbody")
+      tbody.innerHTML = res.map(item => `
+           <tr>
+             <td>${item._id}</td>  
+             <td>${item.username}</td>  
+             <td>${item.age}</td>  
+             <td><img src=${item.avatar} alt="" /> </td>  
+           </tr>
+           `).join("")
+    })
+
+    exit.onclick = () => {
+      localStorage.removeItem("token")
+      location.href = "/login"
+    }
+  </script>
+
+</body>
+
+</html>

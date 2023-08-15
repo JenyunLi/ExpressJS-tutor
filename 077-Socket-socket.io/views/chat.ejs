@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat</title>
+  <script src="./javascripts/socket.io.min.js"></script>
+</head>
+
+<body>
+  <h1>聊天室</h1>
+  <h1>𢑐前用戶: <b id="user"></b></h1>
+  <input type="text" id="text">
+  <button id="send">send</button>
+  <select id="select"></select>
+  <!-- 建立socket連接，帶着token，後端驗証 -->
+  <script>
+    var select = document.querySelector("#select")
+    var send = document.querySelector("#send")
+    var text = document.querySelector("#text")
+    var user = document.querySelector("#user")
+    user.innerHTML= localStorage.getItem("username")
+    const WebSocketType = {
+      Error: 0, // 错误
+      GroupList: 1,
+      GroupChat: 2,
+      SingleChat: 3,
+    }
+
+    // 引入socket.io js端, default 連接localhost:3000
+    const socket= io(`ws://localhost:3000?token=${localStorage.getItem("token")}`)
+    socket.on(WebSocketType.GroupChat, (msg) => { 
+      // console.log(msg);
+      var usr= msg.user? msg.user.username:"廣播"
+          console.log(usr+": "+ msg.data);
+    })
+
+    socket.on(WebSocketType.SingleChat, (msg) => { 
+      var usr= msg.user? msg.user.username:"廣播"
+          console.log(usr+": "+ msg.data);
+    })
+
+    socket.on(WebSocketType.Error, (msg) => { 
+      localStorage.removeItem("token")
+      location.href="/login"
+     })
+
+    socket.on(WebSocketType.GroupList, (msg) => { 
+      // console.log(msg);
+      const onlineList = msg.data
+          select.innerHTML = ""
+          select.innerHTML = `<option value="all">all</option>`
+            + onlineList.map(item =>
+              `<option value="${item.username}">${item.username}</option>`
+            ).join("")
+     })
+    send.onclick = () => {
+      if (select.value === "all") {
+        // console.log("群发");
+        socket.emit(WebSocketType.GroupChat, createMessage(text.value ))
+      } else {
+        // console.log("私聊");
+        socket.emit(WebSocketType.SingleChat, createMessage(text.value, select.value ))
+      }
+    }
+
+    function createMessage(data, to) {
+      return {
+        data,
+        to
+      }
+    }
+
+  </script>
+</body>
+
+</html>

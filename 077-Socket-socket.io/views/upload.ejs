@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload</title>
+</head>
+<body>
+  <form action="/api/user" method="post" enctype="multipart/form-data">
+    <div>
+      用戶名: <input type="text" name="username" id="">
+    </div>
+    <div>
+      密碼: <input type="password" name="password" id="">
+    </div>
+    <div>
+      年齡: <input type="number" name="age" id="">
+    </div>
+    <div>
+      头像: <input type="file" name="avatar" id="" multiple>
+    </div>
+    <div>
+      <button type="submit">添加用戶</button>
+    </div>
+  </form>
+</body>
+</html>
